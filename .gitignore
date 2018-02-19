@@ -1,3 +1,6 @@
 *.out
 *.*~
+\#*\#
 assets/raw/
+bin/
+build/

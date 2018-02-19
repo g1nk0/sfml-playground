@@ -3,10 +3,14 @@
 #include "ResourceManager.hpp"
 
 Game::Game() : m_window(sf::VideoMode(640, 480), "RougeLike"),
+	       m_view(sf::FloatRect(0, 0, 640, 480)),
 	       m_player(2, 2)
 {
+  m_window.setView(m_view);
+  m_window.setVerticalSyncEnabled(true);
   loadResources();
   initActors();
+  m_time_since_last_press = -0.1f;
 }
 
 void Game::loadResources()
@@ -29,48 +33,77 @@ void Game::initActors()
 	}
     }
   m_player.myinit();
-  m_actors.push_back(m_player);
+}
+
+void Game::update(float dt)
+{ 
+  if (m_time_since_last_press > 0)
+    {
+      m_time_since_last_press -= dt;
+    }
+}
+
+void Game::processEvents()
+{
+  sf::Event event;
+  while (m_window.pollEvent(event))
+    {
+      if (event.type == sf::Event::Closed)
+	{
+	  m_window.close();
+	}
+      if (event.type == sf::Event::KeyPressed && m_time_since_last_press <= 0)
+	{
+	  m_time_since_last_press = 0.14f;
+	  switch (event.key.code)
+	    {
+	    case sf::Keyboard::Q:
+	      m_window.close();
+	      break;
+
+	    case sf::Keyboard::A:
+	      m_player.mmove(-1, 0);
+	      break;
+
+	    case sf::Keyboard::D:
+	      m_player.mmove(1, 0);
+	      break;
+
+	    case sf::Keyboard::W:
+	      m_player.mmove(0, -1);
+	      break;
+
+	    case sf::Keyboard::S:
+	      m_player.mmove(0, 1);
+	      break;
+
+	    }
+	  m_view.setCenter(m_player.getPosition());
+	}
+    }
+}
+
+void Game::render()
+{
+  m_window.clear();
+  m_window.setView(m_view);
+  for (auto& x : m_actors)
+    {
+      m_window.draw(x);
+    }
+  m_window.draw(m_player);
+  m_window.display();
 }
 
 void Game::run()
 {
+  sf::Clock clock;
+  sf::Time dt;
   while (m_window.isOpen())
     {
-      sf::Event event;
-      while (m_window.pollEvent(event))
-	{
-	  if (event.type == sf::Event::Closed)
-	    {
-	      m_window.close();
-	    }
-	  if (event.type == sf::Event::KeyReleased)
-	    {
-	      switch (event.key.code)
-		{
-		case sf::Keyboard::A:
-		  std::cout << "key a was pressed" << std::endl;
-		  m_player.mmove(-1, 0);
-		  break;
-
-		case sf::Keyboard::D:
-		  std::cout << "key 'd' was pressed" << std::endl;
-		  m_player.mmove(1, 0);
-		  break;
-
-		case sf::Keyboard::Q:
-		  m_window.close();
-		  break;
-		}
-	    }
-	}
-
-      m_player.move(10.0f, 10.0f);
-      m_window.clear();
-      for (const auto& x : m_actors)
-	{
-	  m_window.draw(x);
-	}
-
-      m_window.display();
+      dt = clock.restart();
+      processEvents();
+      update(dt.asSeconds());
+      render();
     }
 }
