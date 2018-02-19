@@ -6,7 +6,6 @@ Game::Game() : m_window(sf::VideoMode(640, 480), "RougeLike"),
 	       m_view(sf::FloatRect(0, 0, 640, 480)),
 	       m_player(2, 2)
 {
-  m_window.setView(m_view);
   m_window.setVerticalSyncEnabled(true);
   loadResources();
   initActors();
@@ -33,6 +32,8 @@ void Game::initActors()
 	}
     }
   m_player.myinit();
+  m_view.setCenter(m_player.getPosition());
+  m_window.setView(m_view);
 }
 
 void Game::update(float dt)
